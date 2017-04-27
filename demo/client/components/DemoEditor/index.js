@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import Editor from 'draft-js-plugins-editor';
-
+import createMentionPlugin, { defaultSuggestionsFilter } from 'draft-js-mention-plugin';
+import 'draft-js-mention-plugin/lib/plugin.css';
 import createMarkdownShortcutsPlugin from 'draft-js-markdown-shortcuts-plugin'; // eslint-disable-line
 import Draft, {
   convertToRaw,
@@ -10,11 +11,16 @@ import Draft, {
 } from 'draft-js';
 import styles from './styles.css';
 import prismPlugin from '../../plugins/prism';
+import mentions from './mentions';
 
 window.Draft = Draft;
 
+const mentionPlugin = createMentionPlugin();
+const { MentionSuggestions } = mentionPlugin;
+
 const plugins = [
   prismPlugin,
+  mentionPlugin,
   createMarkdownShortcutsPlugin()
 ];
 
@@ -24,7 +30,8 @@ const initialEditorState = EditorState.createWithContent(contentState);
 export default class DemoEditor extends Component {
 
   state = {
-    editorState: initialEditorState
+    editorState: initialEditorState,
+    suggestions: mentions
   };
 
   componentDidMount = () => {
@@ -43,6 +50,20 @@ export default class DemoEditor extends Component {
     });
   };
 
+  onSearchChange = ({ value }) => {
+    this.setState({
+      suggestions: defaultSuggestionsFilter(value, mentions),
+    });
+  };
+
+  onAddMention = () => {
+    // get the mention object selected
+  }
+
+  focus = () => {
+    this.editor.focus();
+  };
+
   render() {
     const { editorState } = this.state;
     const placeholder = editorState.getCurrentContent().hasText() ? null : <div className={styles.placeholder}>Write something here...</div>;
@@ -56,6 +77,11 @@ export default class DemoEditor extends Component {
             plugins={plugins}
             spellCheck
             ref={(element) => { this.editor = element; }}
+          />
+          <MentionSuggestions
+            onSearchChange={this.onSearchChange}
+            suggestions={this.state.suggestions}
+            onAddMention={this.onAddMention}
           />
         </div>
       </div>

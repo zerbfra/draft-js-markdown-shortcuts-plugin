@@ -13,6 +13,12 @@ module.exports = {
   module: {
     loaders: [
       {
+        test: /plugin\.css$/,
+        loaders: [
+          'style', 'css',
+        ],
+      },
+      {
         // match all js files except example.js
         test: /^(?!.*example\.js$).*\.js$/,
         loaders: ['babel'],
