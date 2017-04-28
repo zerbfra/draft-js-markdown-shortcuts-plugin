@@ -35,6 +35,7 @@ describe('draft-js-markdown-shortcuts-plugin', () => {
   [
     [],
     [{}],
+    [{ beforeHandleReturn: () => 'handled' }],
   ].forEach((args) => {
     beforeEach(() => {
       modifierSpy = sinon.spy(() => newEditorState);
@@ -90,6 +91,7 @@ describe('draft-js-markdown-shortcuts-plugin', () => {
         expect(plugin.store).to.deep.equal(store);
       });
       describe('handleReturn', () => {
+        let hasBeforeHandleReturn = args[0] && args[0].beforeHandleReturn;
         beforeEach(() => {
           subject = () => plugin.handleReturn(event, store);
         });
@@ -124,9 +126,15 @@ describe('draft-js-markdown-shortcuts-plugin', () => {
               data: {}
             }]
           };
-          expect(subject()).to.equal('handled');
-          expect(modifierSpy).to.have.been.calledOnce();
-          expect(store.setEditorState).to.have.been.calledWith(newEditorState);
+          if (hasBeforeHandleReturn) {
+            expect(subject()).to.equal('not-handled');
+            expect(modifierSpy).not.to.have.been.called();
+            expect(store.setEditorState).not.to.have.been.called();
+          } else {
+            expect(subject()).to.equal('handled');
+            expect(modifierSpy).to.have.been.calledOnce();
+            expect(store.setEditorState).to.have.been.calledWith(newEditorState);
+          }
         });
         const testInsertNewBlock = (type) => () => {
           createMarkdownShortcutsPlugin.__Rewire__('insertEmptyBlock', modifierSpy); // eslint-disable-line no-underscore-dangle
@@ -142,9 +150,15 @@ describe('draft-js-markdown-shortcuts-plugin', () => {
               data: {}
             }]
           };
-          expect(subject()).to.equal('handled');
-          expect(modifierSpy).to.have.been.calledOnce();
-          expect(store.setEditorState).to.have.been.calledWith(newEditorState);
+          if (hasBeforeHandleReturn) {
+            expect(subject()).to.equal('not-handled');
+            expect(modifierSpy).not.to.have.been.called();
+            expect(store.setEditorState).not.to.have.been.called();
+          } else {
+            expect(subject()).to.equal('handled');
+            expect(modifierSpy).to.have.been.calledOnce();
+            expect(store.setEditorState).to.have.been.calledWith(newEditorState);
+          }
         };
         ['one', 'two', 'three', 'four', 'five', 'six'].forEach((level) => {
           describe(`on header-${level}`, () => {
@@ -175,9 +189,15 @@ describe('draft-js-markdown-shortcuts-plugin', () => {
               data: {}
             }]
           };
-          expect(subject()).to.equal('handled');
-          expect(modifierSpy).to.have.been.calledOnce();
-          expect(store.setEditorState).to.have.been.calledWith(newEditorState);
+          if (hasBeforeHandleReturn) {
+            expect(subject()).to.equal('not-handled');
+            expect(modifierSpy).not.to.have.been.called();
+            expect(store.setEditorState).not.to.have.been.called();
+          } else {
+            expect(subject()).to.equal('handled');
+            expect(modifierSpy).to.have.been.calledOnce();
+            expect(store.setEditorState).to.have.been.calledWith(newEditorState);
+          }
         });
         it('insert new line char from code-block', () => {
           createMarkdownShortcutsPlugin.__Rewire__('insertText', modifierSpy); // eslint-disable-line no-underscore-dangle
@@ -193,9 +213,15 @@ describe('draft-js-markdown-shortcuts-plugin', () => {
               data: {}
             }]
           };
-          expect(subject()).to.equal('handled');
-          expect(modifierSpy).to.have.been.calledOnce();
-          expect(store.setEditorState).to.have.been.calledWith(newEditorState);
+          if (hasBeforeHandleReturn) {
+            expect(subject()).to.equal('not-handled');
+            expect(modifierSpy).not.to.have.been.called();
+            expect(store.setEditorState).not.to.have.been.called();
+          } else {
+            expect(subject()).to.equal('handled');
+            expect(modifierSpy).to.have.been.calledOnce();
+            expect(store.setEditorState).to.have.been.calledWith(newEditorState);
+          }
         });
       });
       describe('blockStyleFn', () => {

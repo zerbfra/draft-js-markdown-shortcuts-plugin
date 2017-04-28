@@ -19,6 +19,12 @@ import createImageDecorator from './decorators/image';
 import { addText, addEmptyBlock } from './utils';
 
 const INLINE_STYLE_CHARACTERS = [' ', '*', '_'];
+const HANDLED = 'handled';
+const NOT_HANDLED = 'not-handled';
+
+const defaultConfig = {
+  beforeHandleReturn: () => NOT_HANDLED
+};
 
 function checkCharacterForState(editorState, character) {
   let newEditorState = handleBlockType(editorState, character);
@@ -60,6 +66,7 @@ function checkReturnForState(editorState, ev) {
 }
 
 const createMarkdownShortcutsPlugin = (config = {}) => {
+  const { beforeHandleReturn } = { ...defaultConfig, ...config };
   const store = {};
   return {
     store,
@@ -109,36 +116,39 @@ const createMarkdownShortcutsPlugin = (config = {}) => {
       const newEditorState = adjustBlockDepth(editorState, ev);
       if (newEditorState !== editorState) {
         setEditorState(newEditorState);
-        return 'handled';
+        return HANDLED;
       }
-      return 'not-handled';
+      return NOT_HANDLED;
     },
     handleReturn(ev, { setEditorState, getEditorState }) {
+      if (beforeHandleReturn() === HANDLED) {
+        return undefined;
+      }
       const editorState = getEditorState();
       const newEditorState = checkReturnForState(editorState, ev);
       if (editorState !== newEditorState) {
         setEditorState(newEditorState);
-        return 'handled';
+        return HANDLED;
       }
-      return 'not-handled';
+      return NOT_HANDLED;
     },
     handleBeforeInput(character, { getEditorState, setEditorState }) {
       if (character !== ' ') {
-        return 'not-handled';
+        return NOT_HANDLED;
       }
       const editorState = getEditorState();
       const newEditorState = checkCharacterForState(editorState, character);
       if (editorState !== newEditorState) {
         setEditorState(newEditorState);
-        return 'handled';
+        return HANDLED;
       }
-      return 'not-handled';
+      return NOT_HANDLED;
     },
     handlePastedText(text, html, { getEditorState, setEditorState }) {
       const editorState = getEditorState();
       let newEditorState = editorState;
       let buffer = [];
-      for (let i = 0; i < text.length; i++) { // eslint-disable-line no-plusplus
+      for (let i = 0; i < text.length; i += 1) {
         if (INLINE_STYLE_CHARACTERS.indexOf(text[i]) >= 0) {
           newEditorState = addText(newEditorState, buffer.join('') + text[i]);
           newEditorState = checkCharacterForState(newEditorState, text[i]);
@@ -158,9 +168,9 @@ const createMarkdownShortcutsPlugin = (config = {}) => {
 
       if (editorState !== newEditorState) {
         setEditorState(newEditorState);
-        return 'handled';
+        return HANDLED;
       }
-      return 'not-handled';
+      return NOT_HANDLED;
     }
   };
 };

@@ -18,20 +18,25 @@ window.Draft = Draft;
 const mentionPlugin = createMentionPlugin();
 const { MentionSuggestions } = mentionPlugin;
 
-const plugins = [
-  prismPlugin,
-  mentionPlugin,
-  createMarkdownShortcutsPlugin()
-];
-
 const contentState = ContentState.createFromText('');
 const initialEditorState = EditorState.createWithContent(contentState);
 
 export default class DemoEditor extends Component {
+  constructor(...args) {
+    super(...args);
+    this.plugins = [
+      prismPlugin,
+      createMarkdownShortcutsPlugin({
+        beforeHandleReturn: this.beforeHandleReturn
+      }),
+      mentionPlugin
+    ];
+  }
 
   state = {
     editorState: initialEditorState,
-    suggestions: mentions
+    suggestions: mentions,
+    isSuggestionsOpened: false
   };
 
   componentDidMount = () => {
@@ -60,6 +65,25 @@ export default class DemoEditor extends Component {
     // get the mention object selected
   }
 
+  onCloseSuggestions = () => {
+    this.setState({
+      isSuggestionsOpened: false
+    });
+  }
+
+  onOpenSuggestions = () => {
+    this.setState({
+      isSuggestionsOpened: true
+    });
+  }
+
+  beforeHandleReturn = () => {
+    if (this.state.isSuggestionsOpened) {
+      return 'handled';
+    }
+    return 'not-handled';
+  }
+
   focus = () => {
     this.editor.focus();
   };
@@ -74,7 +98,7 @@ export default class DemoEditor extends Component {
           <Editor
             editorState={editorState}
             onChange={this.onChange}
-            plugins={plugins}
+            plugins={this.plugins}
             spellCheck
             ref={(element) => { this.editor = element; }}
           />
@@ -82,6 +106,8 @@ export default class DemoEditor extends Component {
             onSearchChange={this.onSearchChange}
             suggestions={this.state.suggestions}
             onAddMention={this.onAddMention}
+            onClose={this.onCloseSuggestions}
+            onOpen={this.onOpenSuggestions}
           />
         </div>
       </div>
